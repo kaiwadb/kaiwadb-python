@@ -1,6 +1,6 @@
 [project]
 name = "kaiwadb"
-version = "0.1.0"
+version = "0.2.0"
 description = "Have conversation with your relational database using natural language"
 readme = "README.md"
 authors = [{ name = "Jiří Klimeš", email = "klimes@deepvision.cz" }]

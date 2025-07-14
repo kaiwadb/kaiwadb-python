@@ -20,11 +20,15 @@ from kaiwadb.models.instance import (
 from kaiwadb.types.object_id import ObjectId
 
 
-def map_documents_to_tables(documents: list[type[Document]]) -> dict[str, Table]:
-    return {
-        doc.__name__: Table(alias=doc.__collection__ or doc.__table__, fields=map_to_type(doc).properties)
+def map_documents_to_tables(documents: list[type[Document]]) -> list[Table]:
+    return [
+        Table(
+            name=doc.__collection__ or doc.__table__ or doc.__name__,
+            alias=doc.__name__,
+            fields=map_to_type(doc).properties,
+        )
         for doc in documents
-    }
+    ]
 
 
 @overload

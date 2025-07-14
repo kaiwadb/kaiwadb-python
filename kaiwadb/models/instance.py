@@ -54,7 +54,7 @@ class Instance(BaseModel):
     description: str | None = None
     engine: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB
     name: str
-    tables: Dict[str, Table]
+    tables: list[Table]
 
 
 class ObjectField(BaseModel):
@@ -82,6 +82,7 @@ class UnionField(BaseModel):
 
 
 class Table(BaseModel):
+    name: str
     alias: str | None = None
     fields: Dict[str, ObjectField | ArrayField | UnionField | EnumField | PrimitiveField]
 
