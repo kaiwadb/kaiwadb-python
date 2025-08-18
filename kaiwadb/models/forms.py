@@ -8,3 +8,8 @@ from pydantic import BaseModel
 
 class GenerationForm(BaseModel):
     query: str
+
+
+class SearchForm(BaseModel):
+    query: str
+    limit: int
