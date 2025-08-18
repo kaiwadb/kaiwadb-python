@@ -12,9 +12,19 @@ from sqlalchemy import text
 from sqlalchemy.engine.base import Engine
 
 from kaiwadb.document import Document
-from kaiwadb.models.generationform import GenerationForm
-from kaiwadb.models.generationresponse import GenerationResponse
-from kaiwadb.models.instance import MSSQL, Instance, MariaDB, Mongo, MySQL, Oracle, PostgreSQL, SQLite
+from kaiwadb.models.forms import SearchForm, GenerationForm
+from kaiwadb.models.responses import GenerationResponse
+from kaiwadb.models.instance import (
+    MSSQL,
+    Instance,
+    MariaDB,
+    Mongo,
+    MySQL,
+    Oracle,
+    PostgreSQL,
+    SQLite,
+)
+from kaiwadb.models.responses import SearchResponse
 from kaiwadb.schema_mapping import map_documents_to_tables
 
 
@@ -113,7 +123,9 @@ class KaiwaDB:
         self.logger = logging.getLogger(__name__)
 
         self.logger.info("Initializing KaiwaDB")
-        self.logger.info(f"Using apikey: {self.api_key[:5]}***** to connect to {self.api_base_url}")
+        self.logger.info(
+            f"Using apikey: {self.api_key[:5]}***** to connect to {self.api_base_url}"
+        )
 
         self.instance = Instance(
             name=self.identifier,
@@ -144,9 +156,27 @@ class KaiwaDB:
             return
         if res.status_code == 409:
             # TODO: check based on the `self.allow_instance_overwrites`
-            self.logger.info("Different database schema already registered with the same identifier")
+            self.logger.info(
+                "Different database schema already registered with the same identifier"
+            )
             return
         res.raise_for_status()
+
+    def search(self, query: str, limit: int) -> list:
+        self.logger.info(f'Searching pipelines for "{query}"')
+        payload = SearchForm(query=query, limit=limit)
+        st = time.monotonic()
+        res = requests.post(
+            f"{self.api_base_url}/schema/{self.identifier}/search",
+            json=payload.model_dump(),
+            headers=self.http_headers,
+        )
+        res = SearchResponse(**res.json())
+        duration = time.monotonic() - st
+        self.logger.info(
+            f"Found {len(res.pipelines)} pipelines in {duration:.2f} seconds"
+        )
+        return res.pipelines
 
     def generate(self, query: str) -> GenerationResponse:
         """
@@ -263,9 +293,9 @@ class KaiwaDB:
 
         match (db, pipeline.assembled.target):
             case (Database(), Mongo()):
-                cursor = db.get_collection(pipeline.assembled.query["collection"]).aggregate(
-                    pipeline.assembled.query["pipeline"]
-                )
+                cursor = db.get_collection(
+                    pipeline.assembled.query["collection"]
+                ).aggregate(pipeline.assembled.query["pipeline"])
                 docs = list(islice(cursor, limit))
                 return docs
             case (Engine(), PostgreSQL()):

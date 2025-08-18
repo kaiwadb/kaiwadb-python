@@ -6,7 +6,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+import uuid
 
 from .engines import MSSQL, MariaDB, Mongo, MySQL, Oracle, PostgreSQL, SQLite
 
@@ -24,3 +25,14 @@ class Assembled(BaseModel):
 class GenerationResponse(BaseModel):
     assembled: Assembled
     cache_info: CacheInfo
+
+
+class FoundPipeline(BaseModel):
+    id: uuid.UUID = Field(..., alias="pipeline_id")
+    query: str
+    usage: int
+    similarity: float
+
+
+class SearchResponse(BaseModel):
+    pipelines: list[FoundPipeline] = Field(..., alias="data")
