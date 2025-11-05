@@ -22,9 +22,16 @@ class Assembled(BaseModel):
     target: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB
 
 
+class OperationStats(BaseModel):
+    operations_used: int
+    operation_balance: int
+
+
 class GenerationResponse(BaseModel):
     assembled: Assembled
     cache_info: CacheInfo
+    pipeline_id: str
+    operation_stats: OperationStats
 
 
 class FoundPipeline(BaseModel):
