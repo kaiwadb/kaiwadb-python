@@ -41,3 +41,6 @@ class SQLite(DBEgnine):
 class MariaDB(DBEgnine):
     type: Literal["mariadb"] = "mariadb"
     version: int = Field(..., ge=0)
+
+class ClickHouse(DBEgnine):
+    type: Literal["clickhouse"] = "clickhouse"
