@@ -23,6 +23,7 @@ from kaiwadb.models.instance import (
     Oracle,
     PostgreSQL,
     SQLite,
+    ClickHouse
 )
 from kaiwadb.models.responses import SearchResponse
 from kaiwadb.schema_mapping import map_documents_to_tables
@@ -64,7 +65,7 @@ class KaiwaDB:
         *,
         identifier: str,
         documents: list[type[Document]],
-        engine: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB,
+        engine: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB | ClickHouse,
         description: str | None = None,
         api_key: str | None = os.environ.get("KAIWADB_API_KEY", None),
         api_base_url: str = "https://api.kaiwadb.com",
