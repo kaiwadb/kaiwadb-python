@@ -10,6 +10,8 @@ import requests
 from pymongo.database import Database
 from sqlalchemy import text
 from sqlalchemy.engine.base import Engine
+from clickhouse_driver import Client as CHClient
+
 
 from kaiwadb.document import Document
 from kaiwadb.models.forms import SearchForm, GenerationForm
@@ -23,7 +25,7 @@ from kaiwadb.models.instance import (
     Oracle,
     PostgreSQL,
     SQLite,
-    ClickHouse
+    ClickHouse,
 )
 from kaiwadb.models.responses import SearchResponse
 from kaiwadb.schema_mapping import map_documents_to_tables
@@ -124,9 +126,7 @@ class KaiwaDB:
         self.logger = logging.getLogger(__name__)
 
         self.logger.info("Initializing KaiwaDB")
-        self.logger.info(
-            f"Using apikey: {self.api_key[:5]}***** to connect to {self.api_base_url}"
-        )
+        self.logger.info(f"Using apikey: {self.api_key[:5]}***** to connect to {self.api_base_url}")
 
         self.instance = Instance(
             name=self.identifier,
@@ -157,9 +157,7 @@ class KaiwaDB:
             return
         if res.status_code == 409:
             # TODO: check based on the `self.allow_instance_overwrites`
-            self.logger.info(
-                "Different database schema already registered with the same identifier"
-            )
+            self.logger.info("Different database schema already registered with the same identifier")
             return
         res.raise_for_status()
 
@@ -174,9 +172,7 @@ class KaiwaDB:
         )
         res = SearchResponse(**res.json())
         duration = time.monotonic() - st
-        self.logger.info(
-            f"Found {len(res.pipelines)} pipelines in {duration:.2f} seconds"
-        )
+        self.logger.info(f"Found {len(res.pipelines)} pipelines in {duration:.2f} seconds")
         return res.pipelines
 
     def generate(self, query: str) -> GenerationResponse:
@@ -236,7 +232,13 @@ class KaiwaDB:
         self.logger.info(f"Generated pipeline in {duration:.2f} seconds")
         return res
 
-    def run(self, query: str, db: Database[Any] | Engine, limit: int | None = None):
+    def run(
+        self,
+        query: str,
+        db: Database[Any] | Engine | CHClient,
+        limit: int | None = None,
+        verbose: bool = False,
+    ):
         """
         Generate and execute a database query from natural language input.
 
@@ -291,12 +293,14 @@ class KaiwaDB:
             >>> # Results contain Row objects with proper field mapping
         """
         pipeline = self.generate(query)
+        if verbose:
+            self.logger.info(f"assembled:\n{pipeline.assembled.query}")
 
         match (db, pipeline.assembled.target):
             case (Database(), Mongo()):
-                cursor = db.get_collection(
-                    pipeline.assembled.query["collection"]
-                ).aggregate(pipeline.assembled.query["pipeline"])
+                cursor = db.get_collection(pipeline.assembled.query["collection"]).aggregate(
+                    pipeline.assembled.query["pipeline"]
+                )
                 docs = list(islice(cursor, limit))
                 return docs
             case (Engine(), PostgreSQL()):
@@ -304,6 +308,9 @@ class KaiwaDB:
                     cursor = conn.execute(text(pipeline.assembled.query))
                     docs = list(islice(cursor, limit))
                     return docs
+            case (CHClient(), ClickHouse()):
+                result = db.execute(pipeline.assembled.query)
+                return result
             case (db, target):
                 raise NotImplementedError(
                     f"Cannot run pipeline assembled for `{repr(target)}` on `{type(db)}`"

@@ -1,12 +1,13 @@
 [project]
 name = "kaiwadb"
-version = "0.2.0"
+version = "0.3.0"
 description = "Have conversation with your relational database using natural language"
 readme = "README.md"
 authors = [{ name = "Jiří Klimeš", email = "klimes@deepvision.cz" }]
 requires-python = ">=3.12"
 dependencies = [
     "cbor2>=5.6.5",
+    "clickhouse-driver>=0.2.10",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.10.3",
     "pymongo>=4.10.1",

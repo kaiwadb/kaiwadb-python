@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 import uuid
 
-from .engines import MSSQL, MariaDB, Mongo, MySQL, Oracle, PostgreSQL, SQLite
+from .engines import MSSQL, MariaDB, Mongo, MySQL, Oracle, PostgreSQL, SQLite, ClickHouse
 
 
 class CacheInfo(BaseModel):
@@ -19,7 +19,7 @@ class CacheInfo(BaseModel):
 
 class Assembled(BaseModel):
     query: Any
-    target: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB
+    target: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB | ClickHouse
 
 
 class OperationStats(BaseModel):

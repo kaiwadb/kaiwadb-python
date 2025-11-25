@@ -9,7 +9,7 @@ from typing import Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
-from .engines import MSSQL, MariaDB, Mongo, MySQL, Oracle, PostgreSQL, SQLite
+from .engines import MSSQL, MariaDB, Mongo, MySQL, Oracle, PostgreSQL, SQLite, ClickHouse
 
 
 class Type(str, Enum):
@@ -52,7 +52,7 @@ class PrimitiveField(BaseModel):
 
 class Instance(BaseModel):
     description: str | None = None
-    engine: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB
+    engine: Mongo | PostgreSQL | MySQL | MSSQL | Oracle | SQLite | MariaDB | ClickHouse
     name: str
     tables: list[Table]
 
