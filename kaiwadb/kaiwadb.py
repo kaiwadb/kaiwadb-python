@@ -135,6 +135,9 @@ class KaiwaDB:
             tables=map_documents_to_tables(self.documents),
         )
 
+        with open("tables.json", "w") as f:
+            f.write(bson.json_util.dumps(self.instance.model_dump(mode="json")["tables"]))
+
         self._register_schema()
 
     @property
@@ -309,7 +312,7 @@ class KaiwaDB:
                     docs = list(islice(cursor, limit))
                     return docs
             case (CHClient(), ClickHouse()):
-                result = db.execute(pipeline.assembled.query)
+                result = db.query_dataframe(pipeline.assembled.query).head(limit)
                 return result
             case (db, target):
                 raise NotImplementedError(
